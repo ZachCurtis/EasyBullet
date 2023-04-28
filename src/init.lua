@@ -9,7 +9,6 @@ export type EasyBulletSettings = {
 	Gravity: boolean?,
 	RenderBullet: boolean?,
 	BulletColor: Color3?,
-	BulletWidth: number?,
 	BulletThickness: number?,
 	DebugMode: boolean?,
 }
@@ -19,7 +18,6 @@ local function overrideDefaults(newEasyBulletSettings: EasyBulletSettings)
 		Gravity = true,
 		RenderBullet = true,
 		BulletColor = Color3.new(0.945098, 0.490196, 0.062745),
-		BulletWidth = 2,
 		BulletThickness = .1,
 		DebugMode = false
 	}
@@ -86,7 +84,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 	end
 end
 
-function EasyBullet:DestroyBullet(bullet)
+function EasyBullet:_destroyBullet(bullet)
 	for i, v in ipairs(self.Bullets) do
 		if v == bullet then
 			table.remove(self.Bullets, i)
