@@ -137,6 +137,16 @@ function EasyBullet:_bindEvents()
 		end
 
 		self.FiredRemote.OnServerEvent:Connect(function(player: Player, barrelPos: Vector3, velocity: Vector3)
+			if typeof(barrelPos) ~= "Vector3" then
+				warn(`{player.Name} passed a malformed barrelPosition type to EasyBulletFired RemoteEvent\nExpected: Vector3, got: {typeof(barrelPos)}`)
+				return
+			end
+
+			if typeof(velocity) ~= "Vector3" then
+				warn(`{player.Name} passed a malformed velocity type to EasyBulletFired RemoteEvent\nExpected: Vector3, got: {typeof(velocity)}`)
+				return
+			end
+
 			local ping = player:GetNetworkPing()
 
 			for _, v in ipairs(Players:GetPlayers()) do
