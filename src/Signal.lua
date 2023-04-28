@@ -64,14 +64,12 @@ function Signal.new(): Signal
 		return SignalConnection
 	end
 	
-	--#region fire
 	function signal:Fire(...)
 
 		for _, callback in ipairs(boundCallbacks) do
             task.spawn(callback, ...)
 		end
 	end
-	--#endregion
 	
 	function signal:Destroy()
 		boundCallbacks = {}
