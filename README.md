@@ -72,7 +72,7 @@ local direction = mouse.Hit.Position - gun.BarrelPosition
 local velocity = direction.Unit * 400
 
 local optionalEasyBulletSettings = {
-    BulletThickness
+    BulletThickness = .4
 }
 
 easyBullet:FireBullet(gun.BarrelPosition, velocity, optionalEasyBulletSettings)
