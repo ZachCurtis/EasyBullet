@@ -67,7 +67,7 @@ function Signal.new(): Signal
 	function signal:Fire(...)
 
 		for _, callback in ipairs(boundCallbacks) do
-            task.spawn(callback, ...)
+			task.spawn(callback, ...)
 		end
 	end
 	
