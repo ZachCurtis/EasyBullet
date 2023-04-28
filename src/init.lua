@@ -110,14 +110,14 @@ function EasyBullet:_fireBullet(shootingPlayer: Player, barrelPos: Vector3, velo
 			hitConnection:Disconnect()
 			belowFallenParts:Disconnect()
 
-			self:DestroyBullet(bullet)
+			self:_destroyBullet(bullet)
 		end)
 
 		belowFallenParts = bullet.BelowFallenParts:Connect(function()
 			hitConnection:Disconnect()
 			belowFallenParts:Disconnect()
 
-			self:DestroyBullet(bullet)
+			self:_destroyBullet(bullet)
 		end)
 
 		bullet:Start(ping)
