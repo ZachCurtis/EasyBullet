@@ -162,14 +162,8 @@ function EasyBullet:_bindEvents()
 	elseif RunService:IsClient() then
 		self.FiredRemote = ReplicatedStorage:WaitForChild("EasyBulletFired") :: RemoteEvent
 
-		if not self.FiredRemote then
-			warn("EasyBullet Remote Event doesn't exist. Did you forget to call EasyBullet.new() on the server?")
-			return
-		end
-
 		self.FiredRemote.OnClientEvent:Connect(function(shootingPlayer: Player, barrelPos: Vector3, velocity: Vector3, accumulatedPing: number, easyBulletSettings: EasyBulletSettings)
 			if shootingPlayer == Players.LocalPlayer then
-				warn('we shot')
 				return
 			end
 			
