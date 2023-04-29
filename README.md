@@ -16,7 +16,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.0.4"
+EasyBullet = "zachcurtis/easybullet@0.1.4"
 ```
 Then run:
 ```bash
@@ -66,7 +66,7 @@ local EasyBulletSettingsOverrides = {
 local easyBullet = EasyBullet.new(EasyBulletSettingsOverrides)
 ```
 
-FireBullet - call on client or server to fire a bullet.
+FireBullet - call on client or server to fire a bullet
 ```lua
 local direction = mouse.Hit.Position - gun.BarrelPosition
 local velocity = direction.Unit * 400
@@ -78,17 +78,45 @@ local optionalEasyBulletSettings = {
 easyBullet:FireBullet(gun.BarrelPosition, velocity, optionalEasyBulletSettings)
 ```
 
+BindCustomCast - pass a callback that returns a RaycastResult or nil to implement custom raycast behavior, such as lag compensation for network delayed character positions
+```lua
+easyBullet:BindCustomCast(function(shooter: Player?, lastFramePosition: Vector3, thisFramePosition: Vector3, elapsedTime: number)
+    local direction = lastFramePosition - thisFramePosition
+
+    local raycastParams = RaycastParams.new()
+
+    -- npc shots have no shooting player
+    if shooter then
+        raycastParams.FilterDescendantsInstances = {shooter.Character}
+        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    end
+
+    return workspace:Raycast(lastFramePosition, direction, raycastParams)
+end)
+```
+
 ### Events
 
 BulletHit - called whenever a bullet hits something
 ```lua
-easyBullet.BulletHit:Connect(function(shootingPlayer: Player, raycastResult: RaycastResult)
+easyBullet.BulletHit:Connect(function(shootingPlayer: Player?, raycastResult: RaycastResult)
     print(raycastResult.Instance.Name)
 end)
 ```
 
 BulletHitHumanoid - called whenever a bullet hits a part belonging to a model with a child humanoid
 ```lua
-easyBullet.BulletHitHumanoid:Connect(function(shootingPlayer: Player, raycastResult: RaycastResult, hitHumanoid: Humanoid)
+easyBullet.BulletHitHumanoid:Connect(function(shootingPlayer: Player?, raycastResult: RaycastResult, hitHumanoid: Humanoid)
     hitHumanoid:TakeDamage(15)
 end)
+```
+
+BulletUpdated - called every time the bullet updates. Useful for rendering custom bullets.
+```lua
+easyBullet.BulletUpdated:Connect(function(lastFramePosition: Vector3, thisFramePosition: Vector3)
+    local direction = lastFramePosition - thisFramePosition
+
+    bulletPart.Size = Vector3.new(.2, .2, direction.Magnitude)
+    bulletPart.CFrame = CFrame.lookAt(lastFramePosition, thisFramePosition) * CFrame.new(0,0, -direction.Magnitude * .5)
+end)
+```

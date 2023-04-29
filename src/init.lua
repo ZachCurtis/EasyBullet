@@ -50,10 +50,12 @@ function EasyBullet.new(easyBulletSettings)
 
 	self.BulletHit = Signal.new()
 	self.BulletHitHumanoid = Signal.new()
+	self.BulletUpdated = Signal.new()
 
 	self.Bullets = {}
 
 	self.FiredRemote = nil
+	self.CustomCastCallback = nil
 
 	self:_bindEvents()
 
@@ -82,6 +84,10 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 	end
 end
 
+function EasyBullet:BindCustomCast(callback: Bullet.CastCallback)
+	self.CustomCastCallback = callback
+end
+
 function EasyBullet:_destroyBullet(bullet)
 	for i, v in ipairs(self.Bullets) do
 		if v == bullet then
@@ -93,8 +99,8 @@ function EasyBullet:_destroyBullet(bullet)
 	bullet:Destroy()
 end
 
-function EasyBullet:_fireBullet(shootingPlayer: Player, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: EasyBulletSettings?)
-	local bullet = Bullet.new(barrelPos, velocity, easyBulletSettings or self.EasyBulletSettings)
+function EasyBullet:_fireBullet(shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: EasyBulletSettings?)
+	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings or self.EasyBulletSettings)
 		
 		local hitConnection, belowFallenParts
 
@@ -173,7 +179,12 @@ function EasyBullet:_bindEvents()
 
 	RunService.Heartbeat:Connect(function()
 		for _, bullet in ipairs(self.Bullets) do
-			bullet:Update()
+			local lastPosition, currentPosition = bullet:Update(self.CustomCastCallback)
+
+			-- Update returns nil when bullet drops below workspace.FallenPartsDestroyHeight
+			if lastPosition then
+				self.BulletUpdated:Fire(lastPosition, currentPosition)
+			end
 		end
 	end)
 end
