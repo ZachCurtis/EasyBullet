@@ -9,7 +9,9 @@ export type EasyBulletSettings = {
 	Gravity: boolean?,
 	RenderBullet: boolean?,
 	BulletColor: Color3?,
-	BulletThickness: number?
+	BulletThickness: number?,
+	FilterList: {[number]: Instance}?,
+	FilterType: Enum.RaycastFilterType
 }
 
 local function overrideDefaults(newEasyBulletSettings: EasyBulletSettings)
@@ -17,7 +19,9 @@ local function overrideDefaults(newEasyBulletSettings: EasyBulletSettings)
 		Gravity = true,
 		RenderBullet = true,
 		BulletColor = Color3.new(0.945098, 0.490196, 0.062745),
-		BulletThickness = .1
+		BulletThickness = .1,
+		FilterList = {},
+		FilterType = Enum.RaycastFilterType.Exclude
 	}
 
 	for key, value in pairs(newEasyBulletSettings) do
@@ -177,6 +181,7 @@ function EasyBullet:_bindEvents()
 		end)
 	end
 
+	-- Both
 	RunService.Heartbeat:Connect(function()
 		for _, bullet in ipairs(self.Bullets) do
 			local lastPosition, currentPosition = bullet:Update(self.CustomCastCallback)
