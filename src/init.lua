@@ -11,7 +11,7 @@ export type EasyBulletSettings = {
 	BulletColor: Color3?,
 	BulletThickness: number?,
 	FilterList: {[number]: Instance}?,
-	FilterType: Enum.RaycastFilterType
+	FilterType: Enum.RaycastFilterType?
 }
 
 local function overrideDefaults(newEasyBulletSettings: EasyBulletSettings)
@@ -67,6 +67,8 @@ function EasyBullet.new(easyBulletSettings)
 end
 
 function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3, easyBulletSettings: EasyBulletSettings?)
+	easyBulletSettings = overrideDefaults(easyBulletSettings or {})
+
 	-- Server; only used for non player bullets.
 	if RunService:IsServer() then
 		for _, v in ipairs(Players:GetPlayers()) do
@@ -74,7 +76,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 			self.FiredRemote:FireClient(v, nil, barrelPosition, bulletVelocity, thisPing, easyBulletSettings)
 		end
 
-		self:_fireBullet(nil, barrelPosition, bulletVelocity, 0)
+		self:_fireBullet(nil, barrelPosition, bulletVelocity, 0, easyBulletSettings)
 	-- Client
 	elseif RunService:IsClient() then
 		if not self.FiredRemote then
@@ -84,7 +86,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 
 		self.FiredRemote:FireServer(barrelPosition, bulletVelocity)
 
-		self:_fireBullet(Players.LocalPlayer, barrelPosition, bulletVelocity, 0)
+		self:_fireBullet(Players.LocalPlayer, barrelPosition, bulletVelocity, 0, easyBulletSettings)
 	end
 end
 

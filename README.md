@@ -16,7 +16,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.1.5"
+EasyBullet = "zachcurtis/easybullet@0.1.6"
 ```
 Then run:
 ```bash
@@ -55,7 +55,7 @@ export type EasyBulletSettings = {
 	BulletColor: Color3?, -- Sets the color of the bullets rendered
 	BulletThickness: number?, -- Sets the thickness of the bullets in studs
 	FilterList: {[number]: Instance}?, -- An array of instances assigned to RayParams.FilterDescendantsInstances
-    FilterType: Enum.RaycastFilterType -- The RaycastFilterType, either Include or Exclude
+    FilterType: Enum.RaycastFilterType? -- The RaycastFilterType, either Include or Exclude
 }
 ```
 
