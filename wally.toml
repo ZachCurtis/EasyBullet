@@ -1,6 +1,6 @@
 [package]
 name = "zachcurtis/easybullet"
-version = "0.1.9"
+version = "0.1.10"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 

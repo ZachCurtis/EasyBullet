@@ -46,7 +46,7 @@ local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings
 	return defaultSettings
 end
 
-local hasConstructed = false
+local constructedEasyBullet
 
 local EasyBullet = {}
 EasyBullet.__index = EasyBullet
@@ -54,11 +54,9 @@ EasyBullet.__index = EasyBullet
 export type EasyBullet = typeof(setmetatable({} :: EasyBulletProps,  EasyBullet))
 
 function EasyBullet.new(easyBulletSettings: Bullet.EasyBulletSettings?)
-	if hasConstructed then
-		error("Only call EasyBullet.new() once per environment")
+	if constructedEasyBullet then
+		return constructedEasyBullet
 	end
-
-	hasConstructed = true
 
 	local self = setmetatable({} :: EasyBulletProps, EasyBullet)
 
@@ -74,6 +72,8 @@ function EasyBullet.new(easyBulletSettings: Bullet.EasyBulletSettings?)
 	self.CustomCastCallback = nil
 
 	self:_bindEvents()
+
+	constructedEasyBullet = self
 
 	return self
 end
