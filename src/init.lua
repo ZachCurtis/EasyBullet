@@ -13,7 +13,7 @@ type EasyBulletProps = {
 	BulletUpdated: Signal.Signal<Vector3, Vector3>,
 	Bullets: {[number]: Bullet.Bullet},
 	FiredRemote: RemoteEvent?,
-	CustomCastCallback: () -> ()?
+	CustomCastCallback: (Player?, Vector3, Vector3, number) -> ()?
 }
 
 type EasyBulletMethods = {
