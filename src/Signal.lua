@@ -3,20 +3,14 @@
 -- closure scoping reimplement of https://github.com/LPGhatguy/lemur/blob/master/lib/Signal.lua
 -- does not defer events
 
-type SignalCallback = (...unknown) -> ()
-
 type SignalConnection = {
 	Disconnect: (self: SignalConnection) -> ()
 }
 
-type Signal = {
-	Fire: (self: Signal, ...unknown) -> (),
-	Destroy: (self: Signal) -> (),
-	Connect: (self: Signal, callback: SignalCallback) -> (SignalConnection)
-}
-
-export type SignalConstructor = {
-	new: () -> Signal,
+export type Signal<T...> = {
+	Fire: (self: Signal<T...>, T...) -> (),
+	Destroy: (self: Signal<T...>) -> (),
+	Connect: (self: Signal<T...>, callback: (T...) -> ()) -> (SignalConnection)
 }
 
 local Signal = {}
@@ -46,12 +40,12 @@ local function listValueRemove(list, value)
 	return newList
 end
 
-function Signal.new(): Signal
-	local signal = {} :: Signal
+function Signal.new<T...>(): Signal<T...>
+	local signal = {} :: Signal<T...>
 	
 	local boundCallbacks = {}
 	
-	function signal:Connect(callback: SignalCallback): SignalConnection
+	function signal:Connect(callback: (T...) -> ()): SignalConnection
 
 		boundCallbacks = listInsert(boundCallbacks, callback)
 
@@ -64,7 +58,7 @@ function Signal.new(): Signal
 		return SignalConnection
 	end
 	
-	function signal:Fire(...)
+	function signal:Fire(...: T...)
 
 		for _, callback in ipairs(boundCallbacks) do
 			task.spawn(callback, ...)
@@ -78,4 +72,4 @@ function Signal.new(): Signal
 	return signal
 end
 
-return Signal :: SignalConstructor
+return Signal

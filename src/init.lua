@@ -1,3 +1,4 @@
+--!strict
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -5,16 +6,25 @@ local Players = game:GetService("Players")
 local Bullet = require(script:WaitForChild("Bullet"))
 local Signal = require(script:WaitForChild("Signal"))
 
-export type EasyBulletSettings = {
-	Gravity: boolean?,
-	RenderBullet: boolean?,
-	BulletColor: Color3?,
-	BulletThickness: number?,
-	FilterList: {[number]: Instance}?,
-	FilterType: Enum.RaycastFilterType?
+type EasyBulletProps = {
+	EasyBulletSettings: Bullet.EasyBulletSettings,
+	BulletHit: Signal.Signal<Player?, RaycastResult>,
+	BulletHitHumanoid: Signal.Signal<Player?, RaycastResult, boolean | Humanoid>,
+	BulletUpdated: Signal.Signal<Vector3, Vector3>,
+	Bullets: {[number]: Bullet.Bullet},
+	FiredRemote: RemoteEvent?,
+	CustomCastCallback: () -> ()?
 }
 
-local function overrideDefaults(newEasyBulletSettings: EasyBulletSettings)
+type EasyBulletMethods = {
+	FireBullet: (self: EasyBullet, barrelPosition: Vector3, bulletVelocity: Vector3, easyBulletSettings: Bullet.EasyBulletSettings?) -> (),
+	BindCustomCast: (self: EasyBullet, callback: Bullet.CastCallback) -> (),
+	_fireBullet: (self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?) -> (),
+	_bindEvents: () -> (),
+
+}
+
+local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings | {})
 	local defaultSettings = {
 		Gravity = true,
 		RenderBullet = true,
@@ -41,14 +51,16 @@ local hasConstructed = false
 local EasyBullet = {}
 EasyBullet.__index = EasyBullet
 
-function EasyBullet.new(easyBulletSettings)
+export type EasyBullet = typeof(setmetatable({} :: EasyBulletProps,  EasyBullet))
+
+function EasyBullet.new(easyBulletSettings: Bullet.EasyBulletSettings?)
 	if hasConstructed then
 		error("Only call EasyBullet.new() once per environment")
 	end
 
 	hasConstructed = true
 
-	local self = setmetatable({}, EasyBullet)
+	local self = setmetatable({} :: EasyBulletProps, EasyBullet)
 
 	self.EasyBulletSettings = overrideDefaults(easyBulletSettings or {})
 
@@ -56,7 +68,7 @@ function EasyBullet.new(easyBulletSettings)
 	self.BulletHitHumanoid = Signal.new()
 	self.BulletUpdated = Signal.new()
 
-	self.Bullets = {}
+	self.Bullets = {} :: {[number]: Bullet.Bullet}
 
 	self.FiredRemote = nil
 	self.CustomCastCallback = nil
@@ -66,7 +78,7 @@ function EasyBullet.new(easyBulletSettings)
 	return self
 end
 
-function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3, easyBulletSettings: EasyBulletSettings?)
+function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3, easyBulletSettings: Bullet.EasyBulletSettings?)
 	easyBulletSettings = overrideDefaults(easyBulletSettings or {})
 
 	-- Server; only used for non player bullets.
@@ -94,8 +106,8 @@ function EasyBullet:BindCustomCast(callback: Bullet.CastCallback)
 	self.CustomCastCallback = callback
 end
 
-function EasyBullet:_destroyBullet(bullet)
-	for i, v in ipairs(self.Bullets) do
+function EasyBullet:_destroyBullet(bullet: Bullet.Bullet)
+	for i, v: Bullet.Bullet in ipairs(self.Bullets) do
 		if v == bullet then
 			table.remove(self.Bullets, i)
 			break
@@ -105,7 +117,7 @@ function EasyBullet:_destroyBullet(bullet)
 	bullet:Destroy()
 end
 
-function EasyBullet:_fireBullet(shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: EasyBulletSettings?)
+function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?)
 	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings or self.EasyBulletSettings)
 		
 		local hitConnection, belowFallenParts
@@ -138,12 +150,21 @@ end
 function EasyBullet:_bindEvents()
 	-- Server
 	if RunService:IsServer() then
-		self.FiredRemote = ReplicatedStorage:FindFirstChild("EasyBulletFired") :: RemoteEvent
+		local firedRemote = ReplicatedStorage:FindFirstChild("EasyBulletFired") :: RemoteEvent
+
+		if not firedRemote then
+			self.FiredRemote = Instance.new("RemoteEvent")
+
+			if self.FiredRemote then
+				self.FiredRemote.Name = "EasyBulletFired"
+				self.FiredRemote.Parent = ReplicatedStorage
+			end
+		else
+			self.FiredRemote = firedRemote
+		end
 
 		if not self.FiredRemote then
-			self.FiredRemote = Instance.new("RemoteEvent")
-			self.FiredRemote.Name = "EasyBulletFired"
-			self.FiredRemote.Parent = ReplicatedStorage
+			return
 		end
 
 		self.FiredRemote.OnServerEvent:Connect(function(player: Player, barrelPos: Vector3, velocity: Vector3)
@@ -174,7 +195,12 @@ function EasyBullet:_bindEvents()
 	elseif RunService:IsClient() then
 		self.FiredRemote = ReplicatedStorage:WaitForChild("EasyBulletFired") :: RemoteEvent
 
-		self.FiredRemote.OnClientEvent:Connect(function(shootingPlayer: Player, barrelPos: Vector3, velocity: Vector3, accumulatedPing: number, easyBulletSettings: EasyBulletSettings)
+		if not self.FiredRemote then
+			warn("No RemoteEvent named 'EasyBulletFired' found as a child of ReplicatedStorage")
+			return
+		end
+
+		self.FiredRemote.OnClientEvent:Connect(function(shootingPlayer: Player, barrelPos: Vector3, velocity: Vector3, accumulatedPing: number, easyBulletSettings: Bullet.EasyBulletSettings)
 			if shootingPlayer == Players.LocalPlayer then
 				return
 			end
@@ -185,11 +211,11 @@ function EasyBullet:_bindEvents()
 
 	-- Both
 	RunService.Heartbeat:Connect(function()
-		for _, bullet in ipairs(self.Bullets) do
+		for _, bullet: Bullet.Bullet in ipairs(self.Bullets) do
 			local lastPosition, currentPosition = bullet:Update(self.CustomCastCallback)
 
 			-- Update returns nil when bullet drops below workspace.FallenPartsDestroyHeight
-			if lastPosition then
+			if lastPosition and currentPosition then
 				self.BulletUpdated:Fire(lastPosition, currentPosition)
 			end
 		end
