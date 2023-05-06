@@ -1,7 +1,7 @@
 # Roblox Studio lock files
 /*.rbxlx.lock
 /*.rbxl.lock
-/*.rbxmx
+# /*.rbxmx
 /*.rbxm
 /*.rbxl
 /*.rbxlx

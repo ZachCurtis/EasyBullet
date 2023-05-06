@@ -13,14 +13,14 @@ end
 
 local bulletCache: {[number]: Part | CylinderHandleAdornment} = {}
 
-local function createBulletPart(addToCache: boolean)
+local function createBulletPart(addToCache: boolean): (Part | CylinderHandleAdornment)?
     local newBulletInstance: Part | CylinderHandleAdornment
 
     if RunService:IsClient() then
         if ClientFPS >= USE_PART_FPS then
             newBulletInstance = Instance.new("Part") :: Part
 
-            if typeof(newBulletInstance) ~= "Part" then return end
+            if not newBulletInstance:IsA("Part") then return end
             
             newBulletInstance.Anchored = true
             newBulletInstance.CanCollide = false
@@ -94,21 +94,23 @@ function BulletDraw.new(bulletColor: Color3, bulletThickness: number)
     self.AdornPart = nil
     self.BulletPart = nil :: (Part | CylinderHandleAdornment)?
 
+    self:_makeAdornPart()
+    self:_updateBulletProps()
+    
     return self
 end
 
 function BulletDraw.Draw(self: BulletDraw, pos0: Vector3, pos1: Vector3)
-    if not self.AdornPart then
-        self:_makeAdornPart()
-        self._updateBulletProps(self)
-    end
-
     if not self.BulletPart then return end
     if not self.AdornPart then return end
 
     if self.BulletPart.Parent ~= workspace then
-        if self.BulletPart:IsA("PVInstance") then
+		if self.BulletPart:IsA("Part") then
+			self.BulletPart.Parent = workspace
+		elseif self.BulletPart:IsA("CylinderHandleAdornment") then
             self.BulletPart.Parent = workspace
+        else
+            warn('neither')
         end
     end
 
@@ -136,6 +138,8 @@ end
 function BulletDraw._updateBulletProps(self: BulletDraw)
     if not self.BulletPart then
         self.BulletPart = getBulletPart()
+
+        assert(self.BulletPart, "Didn't getBulletPart()")
     end
     
     if self.BulletPart and self.BulletPart:IsA("Part") then
