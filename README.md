@@ -51,11 +51,11 @@ end)
 EasyBulletSettings
 ```lua
 export type EasyBulletSettings = {
-	Gravity: boolean?, -- Should the bullet curve according to workspace.Gravity
-	RenderBullet: boolean?, -- Should EasyBullet display a rendered bullet on the client
-	BulletColor: Color3?, -- Sets the color of the bullets rendered
-	BulletThickness: number?, -- Sets the thickness of the bullets in studs
-	FilterList: {[number]: Instance}?, -- An array of instances assigned to RayParams.FilterDescendantsInstances
+    Gravity: boolean?, -- Should the bullet curve according to workspace.Gravity
+    RenderBullet: boolean?, -- Should EasyBullet display a rendered bullet on the client
+    BulletColor: Color3?, -- Sets the color of the bullets rendered
+    BulletThickness: number?, -- Sets the thickness of the bullets in studs
+    FilterList: {[number]: Instance}?, -- An array of instances assigned to RayParams.FilterDescendantsInstances
     FilterType: Enum.RaycastFilterType?, -- The RaycastFilterType, either Include or Exclude
     BulletPartProps: {[string]: unknown}? -- A dictionary of properties matching the properties of BasePart to override the bullet part rendering. Cannot include keys "CFrame", "Size", or "Color"
 }
