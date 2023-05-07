@@ -174,7 +174,7 @@ function EasyBullet:_bindEvents()
 			return
 		end
 
-		self.FiredRemote.OnServerEvent:Connect(function(player: Player, barrelPos: Vector3, velocity: Vector3)
+		self.FiredRemote.OnServerEvent:Connect(function(player: Player, barrelPos: Vector3, velocity: Vector3, easyBulletSettings: Bullet.EasyBulletSettings)
 			if typeof(barrelPos) ~= "Vector3" then
 				warn(`{player.Name} passed a malformed barrelPosition type to EasyBulletFired RemoteEvent\nExpected: Vector3, got: {typeof(barrelPos)}`)
 				return
@@ -185,6 +185,10 @@ function EasyBullet:_bindEvents()
 				return
 			end
 
+			if not easyBulletSettings then
+				easyBulletSettings = self.EasyBulletSettings
+			end
+
 			local ping = player:GetNetworkPing()
 
 			for _, v in ipairs(Players:GetPlayers()) do
@@ -192,10 +196,10 @@ function EasyBullet:_bindEvents()
 				
 				local thisPing = v:GetNetworkPing()
 
-				self.FiredRemote:FireClient(v, player, barrelPos, velocity, ping + thisPing)
+				self.FiredRemote:FireClient(v, player, barrelPos, velocity, ping + thisPing, easyBulletSettings)
 			end
 
-			self:_fireBullet(player, barrelPos, velocity, ping)
+			self:_fireBullet(player, barrelPos, velocity, ping, easyBulletSettings)
 		end)
 
 	-- Client
@@ -206,10 +210,15 @@ function EasyBullet:_bindEvents()
 			warn("No RemoteEvent named 'EasyBulletFired' found as a child of ReplicatedStorage")
 			return
 		end
+		
 
 		self.FiredRemote.OnClientEvent:Connect(function(shootingPlayer: Player, barrelPos: Vector3, velocity: Vector3, accumulatedPing: number, easyBulletSettings: Bullet.EasyBulletSettings)
 			if shootingPlayer == Players.LocalPlayer then
 				return
+			end
+
+			if not easyBulletSettings then
+				easyBulletSettings = self.EasyBulletSettings
 			end
 			
 			self:_fireBullet(shootingPlayer, barrelPos, velocity, accumulatedPing, easyBulletSettings)
