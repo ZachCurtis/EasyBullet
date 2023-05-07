@@ -36,9 +36,7 @@ local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings
 		BulletThickness = .1,
 		FilterList = {},
 		FilterType = Enum.RaycastFilterType.Exclude,
-		BulletPartProps = {
-			
-		}
+		BulletPartProps = {}
 	}
 
 	for key, value in pairs(newEasyBulletSettings) do
@@ -86,6 +84,12 @@ function EasyBullet.new(easyBulletSettings: Bullet.EasyBulletSettings?)
 end
 
 function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3, easyBulletSettings: Bullet.EasyBulletSettings?)
+	assert(barrelPosition, `EasyBullet:FireBullet requires 2 parameters: a Vector3 position to start the bullet from, and a Velocity Vector3 of the direction to fire the bullet, with a magnitude of the initial velocity`)
+	assert(bulletVelocity, `EasyBullet:FireBullet requires 2 parameters: a Vector3 position to start the bullet from, and a Velocity Vector3 of the direction to fire the bullet, with a magnitude of the initial velocity`)
+	
+	assert(typeof(barrelPosition) == "Vector3", "The first parameter to EasyBullet:FireBullet must be a Vector3")
+	assert(typeof(bulletVelocity) == "Vector3", "The second parameter to EasyBullet:FireBullet must be a Vector3")
+	
 	easyBulletSettings = overrideDefaults(easyBulletSettings or {})
 
 	-- Server; only used for non player bullets.
