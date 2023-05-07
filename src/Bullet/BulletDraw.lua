@@ -76,6 +76,7 @@ end
 type BulletDrawProps = {
     BulletColor: Color3,
     BulletThickness: number,
+    BulletPartProps: {[string]: unknown},
     AdornPart: Part?,
     BulletPart: (Part | CylinderHandleAdornment)?
 }
@@ -85,11 +86,12 @@ BulletDraw.__index = BulletDraw
 
 export type BulletDraw = typeof(setmetatable({} :: BulletDrawProps, BulletDraw))
 
-function BulletDraw.new(bulletColor: Color3, bulletThickness: number)
+function BulletDraw.new(bulletColor: Color3, bulletThickness: number, bulletPartProps: {[string]: unknown})
     local self = setmetatable({} :: BulletDrawProps, BulletDraw)
     
     self.BulletColor = bulletColor
     self.BulletThickness = bulletThickness
+    self.BulletPartProps = bulletPartProps or {}
 
     self.AdornPart = nil
     self.BulletPart = nil :: (Part | CylinderHandleAdornment)?
@@ -144,6 +146,20 @@ function BulletDraw._updateBulletProps(self: BulletDraw)
     
     if self.BulletPart and self.BulletPart:IsA("Part") then
         self.BulletPart.Color = self.BulletColor
+
+        for key, value in pairs(self.BulletPartProps) do
+            if key == "CFrame" or key == "Size" then
+                warn(`Cannot include {key} in BulletPartProps as it is calculated internally`)
+                continue
+            elseif key == "Color" then
+                warn(`Cannot set Color from BulletPartProps. Use EasyBulletSettings.BulletColor instead`)
+                continue
+            end
+            
+            if self.BulletPart[key] then
+                self.BulletPart[key] = value
+            end
+        end
     elseif self.BulletPart and self.BulletPart:IsA("CylinderHandleAdornment") then
         if not self.AdornPart then return end
 

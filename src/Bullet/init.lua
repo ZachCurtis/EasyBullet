@@ -13,7 +13,8 @@ export type EasyBulletSettings = {
 	BulletColor: Color3,
 	BulletThickness: number,
 	FilterList: {[number]: Instance},
-	FilterType: Enum.RaycastFilterType
+	FilterType: Enum.RaycastFilterType,
+    BulletPartProps: {[string]: unknown},
 }
 
 type BulletProps = {
@@ -71,7 +72,7 @@ function Bullet.new(shootingPlayer: Player?, barrelPosition: Vector3, velocity: 
     self.RayParams.FilterType = easyBulletSettings.FilterType or Enum.RaycastFilterType.Exclude
     
     if RunService:IsClient() and easyBulletSettings.RenderBullet then
-        self._bulletDraw = BulletDraw.new(easyBulletSettings.BulletColor, easyBulletSettings.BulletThickness)
+        self._bulletDraw = BulletDraw.new(easyBulletSettings.BulletColor, easyBulletSettings.BulletThickness, self.EasyBulletSettings.BulletPartProps)
     end
     
     self._lastPosition = barrelPosition

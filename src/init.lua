@@ -31,7 +31,8 @@ local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings
 		BulletColor = Color3.new(0.945098, 0.490196, 0.062745),
 		BulletThickness = .1,
 		FilterList = {},
-		FilterType = Enum.RaycastFilterType.Exclude
+		FilterType = Enum.RaycastFilterType.Exclude,
+		BulletPartProps = {}
 	}
 
 	for key, value in pairs(newEasyBulletSettings) do
