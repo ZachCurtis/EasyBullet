@@ -60,6 +60,17 @@ export type EasyBulletSettings = {
     BulletPartProps: {[string]: unknown}? -- A dictionary of properties matching the properties of BasePart to override the bullet part rendering. Cannot include keys "CFrame", "Size", or "Color"
 }
 ```
+#### Default EasyBulletSettings
+| Field   | Type    | Default |
+| ------- | ------- | ------- |
+| Gravity | boolean | true    |
+| RenderBullet | boolean | true |
+| BulletColor | Color3 | Color3.new(0.945098, 0.490196, 0.062745) |
+|  BulletThickness | number | .1 |
+| FilterList | table | {} |
+| FilterType | [RaycastFilterType](https://create.roblox.com/docs/reference/engine/enums/RaycastFilterType) | Enum.RaycastFilterType.Exclude |
+| BulletPartProps | table | {} |
+
 
 ### Methods
 Constructor - EasyBullet is a singleton so it will only construct once per server or client but any subsequent calls to EasyBullet.new will return the constructed singleton. Only the settings overrides passed to the first constructor will be used.
