@@ -62,7 +62,7 @@ export type EasyBulletSettings = {
 ```
 
 ### Methods
-Constructor - call once on server and once on client
+Constructor - EasyBullet is a singleton so it will only construct once per server or client but any subsequent calls to EasyBullet.new will return the constructed singleton. Only the settings overrides passed to the first constructor will be used.
 ```lua
 local EasyBulletSettingsOverrides = {
     BulletColor = Color3.new(1, 0, 0),
