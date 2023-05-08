@@ -16,7 +16,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.2.2"
+EasyBullet = "zachcurtis/easybullet@0.2.3"
 ```
 Then run:
 ```bash

@@ -103,7 +103,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 			return
 		end
 
-		self.FiredRemote:FireServer(barrelPosition, bulletVelocity)
+		self.FiredRemote:FireServer(barrelPosition, bulletVelocity, easyBulletSettings)
 
 		self:_fireBullet(Players.LocalPlayer, barrelPosition, bulletVelocity, 0, easyBulletSettings)
 	end
@@ -185,10 +185,6 @@ function EasyBullet:_bindEvents()
 				return
 			end
 
-			if not easyBulletSettings then
-				easyBulletSettings = self.EasyBulletSettings
-			end
-
 			local ping = player:GetNetworkPing()
 
 			for _, v in ipairs(Players:GetPlayers()) do
@@ -215,10 +211,6 @@ function EasyBullet:_bindEvents()
 		self.FiredRemote.OnClientEvent:Connect(function(shootingPlayer: Player, barrelPos: Vector3, velocity: Vector3, accumulatedPing: number, easyBulletSettings: Bullet.EasyBulletSettings)
 			if shootingPlayer == Players.LocalPlayer then
 				return
-			end
-
-			if not easyBulletSettings then
-				easyBulletSettings = self.EasyBulletSettings
 			end
 			
 			self:_fireBullet(shootingPlayer, barrelPos, velocity, accumulatedPing, easyBulletSettings)
