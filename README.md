@@ -3,6 +3,10 @@
 A simple bullet runtime that handles network replication, network syncing, and adjusts the rendered bullets by client framerate. 
 
 ## Getting Started
+Download the [EasyBullet.rbxmx](https://github.com/ZachCurtis/EasyBullet/blob/main/EasyBullet.rbxmx) file and drag it into studio
+
+Or grab the [Marketplace model](https://create.roblox.com/marketplace/asset/13513545189/EasyBullet) and insert it via the Toolbox window
+
 To build EasyBullet into a model, use:
 
 ```bash
