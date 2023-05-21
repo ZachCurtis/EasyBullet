@@ -1,4 +1,8 @@
 --!strict
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+
 local USE_PART_FPS = 45 -- will use a part for bullets above this fps
 
 local RunService = game:GetService("RunService")
@@ -77,7 +81,7 @@ type BulletDrawProps = {
     BulletColor: Color3,
     BulletThickness: number,
     BulletPartProps: {[string]: unknown},
-    AdornPart: Part?,
+    AdornPart: Part,
     BulletPart: (Part | CylinderHandleAdornment)?
 }
 
@@ -93,10 +97,9 @@ function BulletDraw.new(bulletColor: Color3, bulletThickness: number, bulletPart
     self.BulletThickness = bulletThickness
     self.BulletPartProps = bulletPartProps or {}
 
-    self.AdornPart = nil
+    self.AdornPart = self:_makeAdornPart()
     self.BulletPart = nil :: (Part | CylinderHandleAdornment)?
 
-    self:_makeAdornPart()
     self:_updateBulletProps()
     
     return self
@@ -104,7 +107,6 @@ end
 
 function BulletDraw.Draw(self: BulletDraw, pos0: Vector3, pos1: Vector3)
     if not self.BulletPart then return end
-    if not self.AdornPart then return end
 
     if self.BulletPart.Parent ~= workspace then
 		if self.BulletPart:IsA("Part") then
@@ -185,7 +187,7 @@ function BulletDraw:_makeAdornPart()
         adornPart.Parent = workspace
     end
 
-    self.AdornPart = adornPart
+    return adornPart
 end
 
 return BulletDraw

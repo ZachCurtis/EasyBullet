@@ -3,6 +3,11 @@
     <Properties>
       <string name="Name">EasyBullet</string>
       <string name="Source">--!strict
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+-- VERSION 0.2.4
+
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -12,12 +17,12 @@ local Signal = require(script:WaitForChild("Signal"))
 
 type EasyBulletProps = {
 	EasyBulletSettings: Bullet.EasyBulletSettings,
-	BulletHit: Signal.Signal&lt;Player?, RaycastResult>,
-	BulletHitHumanoid: Signal.Signal&lt;Player?, RaycastResult, boolean | Humanoid>,
-	BulletUpdated: Signal.Signal&lt;Vector3, Vector3>,
+	BulletHit: Signal.Signal&lt;Player?, RaycastResult, Bullet.BulletData>,
+	BulletHitHumanoid: Signal.Signal&lt;Player?, RaycastResult, Humanoid, Bullet.BulletData>,
+	BulletUpdated: Signal.Signal&lt;Vector3, Vector3, Bullet.BulletData>,
 	Bullets: {[number]: Bullet.Bullet},
 	FiredRemote: RemoteEvent?,
-	CustomCastCallback: (Player?, Vector3, Vector3, number) -> ()?
+	CustomCastCallback: (Player?, Vector3, Vector3, number, Bullet.BulletData) -> ()?
 }
 
 type EasyBulletMethods = {
@@ -28,6 +33,16 @@ type EasyBulletMethods = {
 
 }
 
+local function optionalTableMerge(optionalTable: Bullet.EasyBulletSettings, nonOptionalTable: Bullet.EasyBulletSettings): Bullet.EasyBulletSettings
+	for key, value in pairs(nonOptionalTable) do
+		if optionalTable[key] == nil then
+			optionalTable[key] = value
+		end
+	end
+
+	return optionalTable :: Bullet.EasyBulletSettings
+end
+
 local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings | {})
 	local defaultSettings = {
 		Gravity = true,
@@ -36,13 +51,20 @@ local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings
 		BulletThickness = .1,
 		FilterList = {},
 		FilterType = Enum.RaycastFilterType.Exclude,
-		BulletPartProps = {}
+		BulletPartProps = {},
+		BulletData = {}
 	}
 
 	for key, value in pairs(newEasyBulletSettings) do
 		if defaultSettings[key] == nil then
 			warn(`{key} does not exist in type EasyBulletSettings`)
 			continue
+		end
+
+		if key == "BulletData" then
+			for dataKey, _ in pairs(value) do
+				assert(dataKey ~= "HitVelocity", `Cannot use key "HitVelocity" in provided BulletData table. "HitVelocity" is a reserved key string used by EasyBullet`)
+			end
 		end
 
 		defaultSettings[key] = value
@@ -90,7 +112,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 	assert(typeof(barrelPosition) == "Vector3", "The first parameter to EasyBullet:FireBullet must be a Vector3")
 	assert(typeof(bulletVelocity) == "Vector3", "The second parameter to EasyBullet:FireBullet must be a Vector3")
 	
-	easyBulletSettings = overrideDefaults(easyBulletSettings or {})
+	easyBulletSettings = optionalTableMerge(easyBulletSettings or {} :: Bullet.EasyBulletSettings, self.EasyBulletSettings)
 
 	-- Server; only used for non player bullets.
 	if RunService:IsServer() then
@@ -128,16 +150,17 @@ function EasyBullet:_destroyBullet(bullet: Bullet.Bullet)
 	bullet:Destroy()
 end
 
-function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?)
-	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings or self.EasyBulletSettings)
+function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings)
+	
+	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings)
 		
 		local hitConnection, belowFallenParts
 
 		hitConnection = bullet.BulletHit:Connect(function(rayResult: RaycastResult, hitHumanoid: Humanoid | boolean)
-			self.BulletHit:Fire(shootingPlayer, rayResult)
+			self.BulletHit:Fire(shootingPlayer, rayResult, easyBulletSettings.BulletData)
 
-			if hitHumanoid then
-				self.BulletHitHumanoid:Fire(shootingPlayer, rayResult, hitHumanoid)
+			if type(hitHumanoid) ~= "boolean" then
+				self.BulletHitHumanoid:Fire(shootingPlayer, rayResult, hitHumanoid, easyBulletSettings.BulletData)
 			end
 
 			hitConnection:Disconnect()
@@ -228,7 +251,7 @@ function EasyBullet:_bindEvents()
 
 			-- Update returns nil when bullet drops below workspace.FallenPartsDestroyHeight
 			if lastPosition and currentPosition then
-				self.BulletUpdated:Fire(lastPosition, currentPosition)
+				self.BulletUpdated:Fire(lastPosition, currentPosition, bullet.EasyBulletSettings.BulletData)
 			end
 		end
 	end)
@@ -240,13 +263,21 @@ return EasyBullet</string>
       <Properties>
         <string name="Name">Bullet</string>
         <string name="Source">--!strict
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+
 local RunService = game:GetService("RunService")
 
-local kinematic = require(script:WaitForChild("kinematic"))
+local KinematicEquations = require(script:WaitForChild("KinematicEquations"))
 local BulletDraw = require(script:WaitForChild("BulletDraw"))
 local Signal = require(script.Parent:WaitForChild("Signal"))
 
-export type CastCallback = (shooter: Player?, pos0: Vector3, pos1: Vector3, elapsedTime: number) -> RaycastResult?
+type BulletDataKey = "HitVelocity"
+
+export type BulletData = {[BulletDataKey | string]: unknown}
+
+export type CastCallback = (shooter: Player?, pos0: Vector3, pos1: Vector3, elapsedTime: number, BulletData) -> RaycastResult?
 
 export type EasyBulletSettings = {
 	Gravity: boolean,
@@ -256,6 +287,7 @@ export type EasyBulletSettings = {
 	FilterList: {[number]: Instance},
 	FilterType: Enum.RaycastFilterType,
     BulletPartProps: {[string]: unknown},
+    BulletData: BulletData
 }
 
 type BulletProps = {
@@ -264,7 +296,7 @@ type BulletProps = {
     Velocity: Vector3,
     EasyBulletSettings: EasyBulletSettings,
     RayParams: RaycastParams,
-    BulletHit: Signal.Signal&lt;RaycastResult, boolean | Humanoid>,
+    BulletHit: Signal.Signal&lt;RaycastResult, boolean | Humanoid, BulletData>,
     BelowFallenParts: Signal.Signal&lt;nil>,
     StartTime: number,
     _bulletDraw: BulletDraw.BulletDraw?,
@@ -345,7 +377,7 @@ function Bullet.Update(self: Bullet, castCallback: CastCallback?): (Vector3?, Ve
     local rayResult
 
     if castCallback then
-        rayResult = castCallback(self.Shooter, lastPosition, currentPosition, elapsedTime)
+        rayResult = castCallback(self.Shooter, lastPosition, currentPosition, elapsedTime, self.EasyBulletSettings.BulletData)
     else
         rayResult = raycast(lastPosition, currentPosition, self.RayParams)
     end
@@ -371,13 +403,21 @@ function Bullet.Destroy(self: Bullet)
     self.BelowFallenParts:Destroy()
 end
 
-function Bullet._getCurrentPositionAndLifetime(self: Bullet): (Vector3, number)
+function Bullet:_getElapsedTime(): number
     local currentTime = os.clock()
-    local elapsedTime = currentTime - self.StartTime
 
-    local acceleration = self.EasyBulletSettings.Gravity and Vector3.new(0, -workspace.Gravity, 0) or Vector3.zero
+    return currentTime - self.StartTime
+end
 
-    local currentDisplacement = kinematic(self.Velocity, acceleration, elapsedTime)
+function Bullet:_getAcceleration(): Vector3
+    return self.EasyBulletSettings.Gravity and Vector3.new(0, -workspace.Gravity, 0) or Vector3.zero
+end
+
+function Bullet._getCurrentPositionAndLifetime(self: Bullet): (Vector3, number)
+    local elapsedTime = self:_getElapsedTime()
+    local acceleration = self:_getAcceleration()
+
+    local currentDisplacement = KinematicEquations:GetDisplacementFromTime(self.Velocity, acceleration, elapsedTime)
     local currentPosition = self.BarrelPosition + currentDisplacement
 
     return currentPosition, elapsedTime
@@ -386,9 +426,18 @@ end
 function Bullet:_handleRayResult(raycastResult: RaycastResult?)
     if not raycastResult then return end
 
+    local elapsedTime = self:_getElapsedTime()
+    local acceleration = self:_getAcceleration()
+
+    local hitVelocity = KinematicEquations:GetFinalVelocityFromTime(self.Velocity, acceleration, elapsedTime)
+
+    local bulletData = self.EasyBulletSettings.BulletData
+    
+    bulletData.HitVelocity = hitVelocity
+
     local hitHumanoid = recursiveHumanoidCheck(raycastResult.Instance)
 
-    self.BulletHit:Fire(raycastResult, hitHumanoid)
+    self.BulletHit:Fire(raycastResult, hitHumanoid, bulletData)
 end
 
 
@@ -398,6 +447,10 @@ return Bullet</string>
         <Properties>
           <string name="Name">BulletDraw</string>
           <string name="Source">--!strict
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+
 local USE_PART_FPS = 45 -- will use a part for bullets above this fps
 
 local RunService = game:GetService("RunService")
@@ -476,7 +529,7 @@ type BulletDrawProps = {
     BulletColor: Color3,
     BulletThickness: number,
     BulletPartProps: {[string]: unknown},
-    AdornPart: Part?,
+    AdornPart: Part,
     BulletPart: (Part | CylinderHandleAdornment)?
 }
 
@@ -492,10 +545,9 @@ function BulletDraw.new(bulletColor: Color3, bulletThickness: number, bulletPart
     self.BulletThickness = bulletThickness
     self.BulletPartProps = bulletPartProps or {}
 
-    self.AdornPart = nil
+    self.AdornPart = self:_makeAdornPart()
     self.BulletPart = nil :: (Part | CylinderHandleAdornment)?
 
-    self:_makeAdornPart()
     self:_updateBulletProps()
     
     return self
@@ -503,7 +555,6 @@ end
 
 function BulletDraw.Draw(self: BulletDraw, pos0: Vector3, pos1: Vector3)
     if not self.BulletPart then return end
-    if not self.AdornPart then return end
 
     if self.BulletPart.Parent ~= workspace then
 		if self.BulletPart:IsA("Part") then
@@ -584,7 +635,7 @@ function BulletDraw:_makeAdornPart()
         adornPart.Parent = workspace
     end
 
-    self.AdornPart = adornPart
+    return adornPart
 end
 
 return BulletDraw</string>
@@ -592,9 +643,15 @@ return BulletDraw</string>
       </Item>
       <Item class="ModuleScript" referent="3">
         <Properties>
-          <string name="Name">kinematic</string>
+          <string name="Name">KinematicEquations</string>
           <string name="Source">--!strict
-local function kinematic(initialVelocity: Vector3, acceleration: Vector3, time: number): Vector3
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+
+local KinematicEquations = {}
+
+function KinematicEquations:GetDisplacementFromTime(initialVelocity: Vector3, acceleration: Vector3, time: number): Vector3
     local vi = initialVelocity
     local a = acceleration
     local t = time
@@ -602,7 +659,33 @@ local function kinematic(initialVelocity: Vector3, acceleration: Vector3, time: 
     return vi * t + .5 * a * math.pow(t, 2)
 end
 
-return kinematic</string>
+function KinematicEquations:GetDisplacementFromFinalVelocity(initialVelocity: Vector3, finalVelocity: Vector3, time: number): Vector3
+    local vi = initialVelocity
+    local vf = finalVelocity
+    local t = time
+
+    return ((vi + vf) / 2) * t
+end
+
+function KinematicEquations:GetFinalVelocityFromTime(initialVelocity: Vector3, acceleration: Vector3, time: number): Vector3
+    local vi = initialVelocity
+    local a = acceleration
+    local t = time
+
+    return vi + a * t
+end
+
+function KinematicEquations:GetFinalVelocityFromDisplacement(initialVelocity: Vector3, acceleration: Vector3, displacement: Vector3): Vector3
+    local vi = initialVelocity
+    local a = acceleration
+    local d = displacement
+
+    local squaredVF = Vector3.new(vi.X^2, vi.Y^2, vi.Z^2) + 2 * a * d
+
+    return Vector3.new(math.sqrt(squaredVF.X), math.sqrt(squaredVF.Y), math.sqrt(squaredVF.Z))
+end
+
+return KinematicEquations</string>
         </Properties>
       </Item>
     </Item>

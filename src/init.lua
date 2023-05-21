@@ -1,4 +1,9 @@
 --!strict
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+-- VERSION 0.2.4
+
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -8,12 +13,12 @@ local Signal = require(script:WaitForChild("Signal"))
 
 type EasyBulletProps = {
 	EasyBulletSettings: Bullet.EasyBulletSettings,
-	BulletHit: Signal.Signal<Player?, RaycastResult>,
-	BulletHitHumanoid: Signal.Signal<Player?, RaycastResult, boolean | Humanoid>,
-	BulletUpdated: Signal.Signal<Vector3, Vector3>,
+	BulletHit: Signal.Signal<Player?, RaycastResult, Bullet.BulletData>,
+	BulletHitHumanoid: Signal.Signal<Player?, RaycastResult, Humanoid, Bullet.BulletData>,
+	BulletUpdated: Signal.Signal<Vector3, Vector3, Bullet.BulletData>,
 	Bullets: {[number]: Bullet.Bullet},
 	FiredRemote: RemoteEvent?,
-	CustomCastCallback: (Player?, Vector3, Vector3, number) -> ()?
+	CustomCastCallback: (Player?, Vector3, Vector3, number, Bullet.BulletData) -> ()?
 }
 
 type EasyBulletMethods = {
@@ -24,6 +29,16 @@ type EasyBulletMethods = {
 
 }
 
+local function optionalTableMerge(optionalTable: Bullet.EasyBulletSettings, nonOptionalTable: Bullet.EasyBulletSettings): Bullet.EasyBulletSettings
+	for key, value in pairs(nonOptionalTable) do
+		if optionalTable[key] == nil then
+			optionalTable[key] = value
+		end
+	end
+
+	return optionalTable :: Bullet.EasyBulletSettings
+end
+
 local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings | {})
 	local defaultSettings = {
 		Gravity = true,
@@ -32,13 +47,20 @@ local function overrideDefaults(newEasyBulletSettings: Bullet.EasyBulletSettings
 		BulletThickness = .1,
 		FilterList = {},
 		FilterType = Enum.RaycastFilterType.Exclude,
-		BulletPartProps = {}
+		BulletPartProps = {},
+		BulletData = {}
 	}
 
 	for key, value in pairs(newEasyBulletSettings) do
 		if defaultSettings[key] == nil then
 			warn(`{key} does not exist in type EasyBulletSettings`)
 			continue
+		end
+
+		if key == "BulletData" then
+			for dataKey, _ in pairs(value) do
+				assert(dataKey ~= "HitVelocity", `Cannot use key "HitVelocity" in provided BulletData table. "HitVelocity" is a reserved key string used by EasyBullet`)
+			end
 		end
 
 		defaultSettings[key] = value
@@ -86,7 +108,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 	assert(typeof(barrelPosition) == "Vector3", "The first parameter to EasyBullet:FireBullet must be a Vector3")
 	assert(typeof(bulletVelocity) == "Vector3", "The second parameter to EasyBullet:FireBullet must be a Vector3")
 	
-	easyBulletSettings = overrideDefaults(easyBulletSettings or {})
+	easyBulletSettings = optionalTableMerge(easyBulletSettings or {} :: Bullet.EasyBulletSettings, self.EasyBulletSettings)
 
 	-- Server; only used for non player bullets.
 	if RunService:IsServer() then
@@ -124,16 +146,17 @@ function EasyBullet:_destroyBullet(bullet: Bullet.Bullet)
 	bullet:Destroy()
 end
 
-function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?)
-	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings or self.EasyBulletSettings)
+function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings)
+	
+	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings)
 		
 		local hitConnection, belowFallenParts
 
 		hitConnection = bullet.BulletHit:Connect(function(rayResult: RaycastResult, hitHumanoid: Humanoid | boolean)
-			self.BulletHit:Fire(shootingPlayer, rayResult)
+			self.BulletHit:Fire(shootingPlayer, rayResult, easyBulletSettings.BulletData)
 
-			if hitHumanoid then
-				self.BulletHitHumanoid:Fire(shootingPlayer, rayResult, hitHumanoid)
+			if type(hitHumanoid) ~= "boolean" then
+				self.BulletHitHumanoid:Fire(shootingPlayer, rayResult, hitHumanoid, easyBulletSettings.BulletData)
 			end
 
 			hitConnection:Disconnect()
@@ -224,7 +247,7 @@ function EasyBullet:_bindEvents()
 
 			-- Update returns nil when bullet drops below workspace.FallenPartsDestroyHeight
 			if lastPosition and currentPosition then
-				self.BulletUpdated:Fire(lastPosition, currentPosition)
+				self.BulletUpdated:Fire(lastPosition, currentPosition, bullet.EasyBulletSettings.BulletData)
 			end
 		end
 	end)

@@ -1,11 +1,19 @@
 --!strict
+
+-- COPYRIGHT 2023 Zach Curtis
+-- Distrubted under the MIT License
+
 local RunService = game:GetService("RunService")
 
-local kinematic = require(script:WaitForChild("kinematic"))
+local KinematicEquations = require(script:WaitForChild("KinematicEquations"))
 local BulletDraw = require(script:WaitForChild("BulletDraw"))
 local Signal = require(script.Parent:WaitForChild("Signal"))
 
-export type CastCallback = (shooter: Player?, pos0: Vector3, pos1: Vector3, elapsedTime: number) -> RaycastResult?
+type BulletDataKey = "HitVelocity"
+
+export type BulletData = {[BulletDataKey | string]: unknown}
+
+export type CastCallback = (shooter: Player?, pos0: Vector3, pos1: Vector3, elapsedTime: number, BulletData) -> RaycastResult?
 
 export type EasyBulletSettings = {
 	Gravity: boolean,
@@ -15,6 +23,7 @@ export type EasyBulletSettings = {
 	FilterList: {[number]: Instance},
 	FilterType: Enum.RaycastFilterType,
     BulletPartProps: {[string]: unknown},
+    BulletData: BulletData
 }
 
 type BulletProps = {
@@ -23,7 +32,7 @@ type BulletProps = {
     Velocity: Vector3,
     EasyBulletSettings: EasyBulletSettings,
     RayParams: RaycastParams,
-    BulletHit: Signal.Signal<RaycastResult, boolean | Humanoid>,
+    BulletHit: Signal.Signal<RaycastResult, boolean | Humanoid, BulletData>,
     BelowFallenParts: Signal.Signal<nil>,
     StartTime: number,
     _bulletDraw: BulletDraw.BulletDraw?,
@@ -104,7 +113,7 @@ function Bullet.Update(self: Bullet, castCallback: CastCallback?): (Vector3?, Ve
     local rayResult
 
     if castCallback then
-        rayResult = castCallback(self.Shooter, lastPosition, currentPosition, elapsedTime)
+        rayResult = castCallback(self.Shooter, lastPosition, currentPosition, elapsedTime, self.EasyBulletSettings.BulletData)
     else
         rayResult = raycast(lastPosition, currentPosition, self.RayParams)
     end
@@ -130,13 +139,21 @@ function Bullet.Destroy(self: Bullet)
     self.BelowFallenParts:Destroy()
 end
 
-function Bullet._getCurrentPositionAndLifetime(self: Bullet): (Vector3, number)
+function Bullet:_getElapsedTime(): number
     local currentTime = os.clock()
-    local elapsedTime = currentTime - self.StartTime
 
-    local acceleration = self.EasyBulletSettings.Gravity and Vector3.new(0, -workspace.Gravity, 0) or Vector3.zero
+    return currentTime - self.StartTime
+end
 
-    local currentDisplacement = kinematic(self.Velocity, acceleration, elapsedTime)
+function Bullet:_getAcceleration(): Vector3
+    return self.EasyBulletSettings.Gravity and Vector3.new(0, -workspace.Gravity, 0) or Vector3.zero
+end
+
+function Bullet._getCurrentPositionAndLifetime(self: Bullet): (Vector3, number)
+    local elapsedTime = self:_getElapsedTime()
+    local acceleration = self:_getAcceleration()
+
+    local currentDisplacement = KinematicEquations:GetDisplacementFromTime(self.Velocity, acceleration, elapsedTime)
     local currentPosition = self.BarrelPosition + currentDisplacement
 
     return currentPosition, elapsedTime
@@ -145,9 +162,18 @@ end
 function Bullet:_handleRayResult(raycastResult: RaycastResult?)
     if not raycastResult then return end
 
+    local elapsedTime = self:_getElapsedTime()
+    local acceleration = self:_getAcceleration()
+
+    local hitVelocity = KinematicEquations:GetFinalVelocityFromTime(self.Velocity, acceleration, elapsedTime)
+
+    local bulletData = self.EasyBulletSettings.BulletData
+    
+    bulletData.HitVelocity = hitVelocity
+
     local hitHumanoid = recursiveHumanoidCheck(raycastResult.Instance)
 
-    self.BulletHit:Fire(raycastResult, hitHumanoid)
+    self.BulletHit:Fire(raycastResult, hitHumanoid, bulletData)
 end
 
 

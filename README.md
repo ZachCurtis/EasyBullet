@@ -16,7 +16,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.2.3"
+EasyBullet = "zachcurtis/easybullet@0.2.4"
 ```
 Then run:
 ```bash
@@ -34,7 +34,8 @@ local defaultSettings = {
     BulletThickness = .1,
     FilterList = {},
     FilterType = Enum.RaycastFilterType.Exclude,
-    BulletPartProps = {}
+    BulletPartProps = {},
+    BulletData = {}
 }
 
 local easyBullet = easyBullet.new(defaultSettings)
@@ -57,7 +58,8 @@ export type EasyBulletSettings = {
     BulletThickness: number?, -- Sets the thickness of the bullets in studs
     FilterList: {[number]: Instance}?, -- An array of instances assigned to RayParams.FilterDescendantsInstances
     FilterType: Enum.RaycastFilterType?, -- The RaycastFilterType, either Include or Exclude
-    BulletPartProps: {[string]: unknown}? -- A dictionary of properties matching the properties of BasePart to override the bullet part rendering. Cannot include keys "CFrame", "Size", or "Color"
+    BulletPartProps: {[string]: unknown}?, -- A dictionary of properties matching the properties of BasePart to override the bullet part rendering. Cannot include keys "CFrame", "Size", or "Color"
+    BulletData: {[string]: unknown}? -- A dictionary of any data you wish to associate with this bullet. HitVelocity is a reserved key for this table, and is set by EasyBullet before passing the BulletData table to the BulletHit, BulletHitHumanoid, and BulletUpdated events. Useful for variations such as displaying a different hit effect for a sniper, or altering the damage dependent on the gun type.
 }
 ```
 #### Default EasyBulletSettings
@@ -97,7 +99,7 @@ easyBullet:FireBullet(gun.BarrelPosition, velocity, optionalEasyBulletSettings)
 
 BindCustomCast - pass a callback that returns a RaycastResult or nil to implement custom raycast behavior, such as lag compensation for network delayed character positions
 ```lua
-easyBullet:BindCustomCast(function(shooter: Player?, lastFramePosition: Vector3, thisFramePosition: Vector3, elapsedTime: number)
+easyBullet:BindCustomCast(function(shooter: Player?, lastFramePosition: Vector3, thisFramePosition: Vector3, elapsedTime: number, bulletData: {[string]: Unknown})
     local direction = lastFramePosition - thisFramePosition
 
     local raycastParams = RaycastParams.new()
@@ -116,21 +118,21 @@ end)
 
 BulletHit - called whenever a bullet hits something
 ```lua
-easyBullet.BulletHit:Connect(function(shootingPlayer: Player?, raycastResult: RaycastResult)
+easyBullet.BulletHit:Connect(function(shootingPlayer: Player?, raycastResult: RaycastResult, bulletData: {[string]: Unknown} | {HitVelocity: Vector3})
     print(raycastResult.Instance.Name)
 end)
 ```
 
 BulletHitHumanoid - called whenever a bullet hits a part belonging to a model with a child humanoid
 ```lua
-easyBullet.BulletHitHumanoid:Connect(function(shootingPlayer: Player?, raycastResult: RaycastResult, hitHumanoid: Humanoid)
+easyBullet.BulletHitHumanoid:Connect(function(shootingPlayer: Player?, raycastResult: RaycastResult, hitHumanoid: Humanoid, bulletData: {[string]: Unknown} | {HitVelocity: Vector3})
     hitHumanoid:TakeDamage(15)
 end)
 ```
 
 BulletUpdated - called every time the bullet updates. Useful for rendering custom bullets.
 ```lua
-easyBullet.BulletUpdated:Connect(function(lastFramePosition: Vector3, thisFramePosition: Vector3)
+easyBullet.BulletUpdated:Connect(function(lastFramePosition: Vector3, thisFramePosition: Vector3, bulletData: {[string]: unknown})
     local direction = lastFramePosition - thisFramePosition
 
     bulletPart.Size = Vector3.new(.2, .2, direction.Magnitude)
