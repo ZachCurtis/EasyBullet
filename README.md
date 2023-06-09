@@ -73,9 +73,10 @@ export type EasyBulletSettings = {
 | RenderBullet | boolean | true |
 | BulletColor | Color3 | Color3.new(0.945098, 0.490196, 0.062745) |
 |  BulletThickness | number | .1 |
-| FilterList | table | {} |
+| FilterList | { [number]: Instance } | {} |
 | FilterType | [RaycastFilterType](https://create.roblox.com/docs/reference/engine/enums/RaycastFilterType) | Enum.RaycastFilterType.Exclude |
-| BulletPartProps | table | {} |
+| BulletPartProps | { [string]: unknown } | {} |
+| BulletData | { [string]: unknown } | {} |
 
 
 ### Methods
@@ -89,7 +90,7 @@ local EasyBulletSettingsOverrides = {
 local easyBullet = EasyBullet.new(EasyBulletSettingsOverrides)
 ```
 
-FireBullet - call on client or server to fire a bullet
+FireBullet - call on client to fire a bullet for a player, or on the server to fire a bullet for a NPC
 ```lua
 local direction = mouse.Hit.Position - gun.BarrelPosition
 local velocity = direction.Unit * 400
