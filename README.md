@@ -20,7 +20,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.2.4"
+EasyBullet = "zachcurtis/easybullet@0.3.0"
 ```
 Then run:
 ```bash
@@ -118,6 +118,24 @@ easyBullet:BindCustomCast(function(shooter: Player?, lastFramePosition: Vector3,
     return workspace:Raycast(lastFramePosition, direction, raycastParams)
 end)
 ```
+
+BindShouldFire - pass a callback that returns a boolean to provide a means of filtering bullets before they're fired. This doesn't prevent the bullet from being networked (see [#2](https://github.com/ZachCurtis/EasyBullet/issues/2)), so `BindShouldFire` should only be called on the Server
+```lua
+easyBullet:BindShouldFire(function(shooter: Player?, barrelPosition: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?)
+    if not shooter or not shooter.Character or not shooter.Character.HumanoidRootPart then
+        return false
+    end
+
+    local humanoid = shooter.Character.Humanoid
+    local rootPart = shooter.Character.HumanoidRootPart
+
+    local discrepancy = (barrelPosition - rootPart.Position).Magnitude
+    local desyncTolerance = (shooter:GetNetworkPing() * humanoid.WalkSpeed) * 1.2
+
+    -- return true if barrelPosition is within how far the player could have walked in that time
+    return discrepancy <= desyncTolerance
+end)
+``` 
 
 ### Events
 

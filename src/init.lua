@@ -11,6 +11,8 @@ local Players = game:GetService("Players")
 local Bullet = require(script:WaitForChild("Bullet"))
 local Signal = require(script:WaitForChild("Signal"))
 
+export type ShouldFireCallback = (shooter: Player?, barrelPosition: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?) -> boolean
+
 type EasyBulletProps = {
 	EasyBulletSettings: Bullet.EasyBulletSettings,
 	BulletHit: Signal.Signal<Player?, RaycastResult, Bullet.BulletData>,
@@ -18,15 +20,16 @@ type EasyBulletProps = {
 	BulletUpdated: Signal.Signal<Vector3, Vector3, Bullet.BulletData>,
 	Bullets: {[number]: Bullet.Bullet},
 	FiredRemote: RemoteEvent?,
-	CustomCastCallback: (Player?, Vector3, Vector3, number, Bullet.BulletData) -> ()?
+	CustomCastCallback: Bullet.CastCallback?, --(Player?, Vector3, Vector3, number, Bullet.BulletData) -> ()?,
+	ShouldFireCallback: ShouldFireCallback?
 }
 
 type EasyBulletMethods = {
 	FireBullet: (self: EasyBullet, barrelPosition: Vector3, bulletVelocity: Vector3, easyBulletSettings: Bullet.EasyBulletSettings?) -> (),
 	BindCustomCast: (self: EasyBullet, callback: Bullet.CastCallback) -> (),
+	BindShouldFire: (self: EasyBullet, callback: ShouldFireCallback) -> (),
 	_fireBullet: (self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings?) -> (),
 	_bindEvents: () -> (),
-
 }
 
 local function optionalTableMerge(optionalTable: Bullet.EasyBulletSettings, nonOptionalTable: Bullet.EasyBulletSettings): Bullet.EasyBulletSettings
@@ -93,6 +96,7 @@ function EasyBullet.new(easyBulletSettings: Bullet.EasyBulletSettings?)
 
 	self.FiredRemote = nil
 	self.CustomCastCallback = nil
+	self.ShouldFireCallback = nil
 
 	self:_bindEvents()
 
@@ -118,6 +122,7 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 		end
 
 		self:_fireBullet(nil, barrelPosition, bulletVelocity, 0, easyBulletSettings)
+	
 	-- Client
 	elseif RunService:IsClient() then
 		if not self.FiredRemote then
@@ -132,7 +137,15 @@ function EasyBullet:FireBullet(barrelPosition: Vector3, bulletVelocity: Vector3,
 end
 
 function EasyBullet:BindCustomCast(callback: Bullet.CastCallback)
+	assert(typeof(callback) == "function", `The callback passed to EasyBullet:BindCustomCast must be a function. Passed type is {typeof(callback)}`)
+
 	self.CustomCastCallback = callback
+end
+
+function EasyBullet:BindShouldFire(callback: ShouldFireCallback)
+	assert(typeof(callback) == "function", `The callback passed to EasyBullet:BindShouldFire must be a function. Passed type is {typeof(callback)}`)
+
+	self.ShouldFireCallback = callback
 end
 
 function EasyBullet:_destroyBullet(bullet: Bullet.Bullet)
@@ -148,6 +161,17 @@ end
 
 function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings)
 	
+	-- Let users filter bullets being fired
+	if self.ShouldFireCallback then
+		local shouldFire = self.ShouldFireCallback(shootingPlayer, barrelPos, velocity, ping, easyBulletSettings)
+		
+		assert(type(shouldFire) == "boolean", `The callback bound by EasyBullet:BindShouldFire must return a boolean, shouldFireCallback returned: {typeof(shouldFire)}`)
+		
+		if shouldFire == false then
+			return
+		end
+	end
+
 	local bullet = Bullet.new(shootingPlayer, barrelPos, velocity, easyBulletSettings)
 		
 		local hitConnection, belowFallenParts
