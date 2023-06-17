@@ -2,7 +2,7 @@
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
--- VERSION 0.2.4
+-- VERSION 0.3.0
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
