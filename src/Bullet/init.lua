@@ -9,7 +9,7 @@ local KinematicEquations = require(script:WaitForChild("KinematicEquations"))
 local BulletDraw = require(script:WaitForChild("BulletDraw"))
 local Signal = require(script.Parent:WaitForChild("Signal"))
 
-type BulletDataKey = "HitVelocity"
+type BulletDataKey = "HitVelocity" | "BulletId"
 
 export type BulletData = {[BulletDataKey | string]: unknown}
 
@@ -93,7 +93,7 @@ function Bullet.new(shootingPlayer: Player?, barrelPosition: Vector3, velocity: 
     return self
 end
 
-function Bullet:Start(ping: number?)
+function Bullet.Start(self: Bullet, ping: number?)
     self.StartTime = os.clock()
 
     if ping then 

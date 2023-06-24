@@ -20,7 +20,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.3.0"
+EasyBullet = "zachcurtis/easybullet@0.3.1"
 ```
 Then run:
 ```bash
@@ -63,7 +63,7 @@ export type EasyBulletSettings = {
     FilterList: {[number]: Instance}?, -- An array of instances assigned to RayParams.FilterDescendantsInstances
     FilterType: Enum.RaycastFilterType?, -- The RaycastFilterType, either Include or Exclude
     BulletPartProps: {[string]: unknown}?, -- A dictionary of properties matching the properties of BasePart to override the bullet part rendering. Cannot include keys "CFrame", "Size", or "Color"
-    BulletData: {[string]: unknown}? -- A dictionary of any data you wish to associate with this bullet. HitVelocity is a reserved key for this table, and is set by EasyBullet before passing the BulletData table to the BulletHit, BulletHitHumanoid, and BulletUpdated events. Useful for variations such as displaying a different hit effect for a sniper, or altering the damage dependent on the gun type.
+    BulletData: {[string]: unknown}? -- A dictionary of any data you wish to associate with this bullet. HitVelocity and BulletId are reserved keys for this table, and are set by EasyBullet before passing the BulletData table to the BulletHit, BulletHitHumanoid, and BulletUpdated events. Useful for variations such as displaying a different hit effect for a sniper, or altering the damage dependent on the gun type.
 }
 ```
 #### Default EasyBulletSettings
