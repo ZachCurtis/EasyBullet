@@ -3,7 +3,7 @@
 -- closure scoping reimplement of https://github.com/LPGhatguy/lemur/blob/master/lib/Signal.lua
 -- does not defer events
 
-type SignalConnection = {
+export type SignalConnection = {
 	Disconnect: (self: SignalConnection) -> ()
 }
 
