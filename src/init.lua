@@ -2,7 +2,7 @@
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
--- VERSION 0.3.1
+-- VERSION 0.3.2
 
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
@@ -195,7 +195,10 @@ function EasyBullet:_destroyBullet(bulletToDestroy: Bullet.Bullet | string)
 		self.BelowFallenPartsConnections[bulletId] = nil
 	end
 
-	bullet:Destroy()
+	-- Obscure bug most likely caused by external library caused this to nil member error
+	if bullet then
+		bullet:Destroy()
+	end
 end
 
 function EasyBullet._fireBullet(self: EasyBullet, shootingPlayer: Player?, barrelPos: Vector3, velocity: Vector3, ping: number, easyBulletSettings: Bullet.EasyBulletSettings)
