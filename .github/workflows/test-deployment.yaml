@@ -1,5 +1,9 @@
 name: Test deployment
 
+defaults:
+  run:
+    working-directory: docs
+
 on:
   pull_request:
     branches:
@@ -13,8 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Change to docs directory
-        run: cd docs
       - uses: actions/setup-node@v3
         with:
           node-version: 18
