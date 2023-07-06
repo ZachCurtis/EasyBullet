@@ -18,8 +18,8 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'zachcurtis', // Usually your GitHub org/user name.
-  projectName: 'easybullet', // Usually your repo name.
+  organizationName: 'ZachCurtis', // Usually your GitHub org/user name.
+  projectName: 'EasyBullet', // Usually your repo name.
   deploymentBranch: "main",
   trailingSlash: false,
 
