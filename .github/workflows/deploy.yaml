@@ -21,11 +21,16 @@ jobs:
         with:
           node-version: 18
           cache: npm
+          working-directory: docs
 
       - name: Install dependencies 
         run: npm ci
+        with:
+          working-directory: docs
+
       - name: Build website
         run: npm run build
+
       - name: Deploy website
         run: GIT_USER=ZachCurtis npm run deploy
 
