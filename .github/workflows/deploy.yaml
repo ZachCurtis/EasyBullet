@@ -1,9 +1,5 @@
 name: Deploy to GitHub Pages
 
-defaults:
-  run:
-    working-directory: docs
-
 on:
   push:
     branches:
@@ -28,6 +24,7 @@ jobs:
         run: npm ci
 
       - name: Build website
+        working-directory: docs
         run: npm run build
 
       # Popular action to deploy to GitHub Pages:
