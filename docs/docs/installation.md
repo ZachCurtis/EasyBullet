@@ -10,7 +10,6 @@ Download the [EasyBullet.rbxmx](https://github.com/ZachCurtis/EasyBullet/blob/ma
 Or grab the [Marketplace model](https://create.roblox.com/marketplace/asset/13513545189/EasyBullet) and insert it via the Toolbox window
 
 ## Install using Wally _(Recommended)_
-
 Install [Wally](https://wally.run/install) if you haven't already
 
 To install EasyBullet using wally, add this line to your wally.toml dependencies:
@@ -20,6 +19,12 @@ EasyBullet = "zachcurtis/easybullet@0.4.0"
 Then run:
 ```bash
 wally install
+```
+
+## Install for [Roblox-TS](https://roblox-ts.com/)
+Use NPM to install EasyBullet into your Roblox-TS project:
+```bash
+npm install @rbxts/easybullet
 ```
 
 ## Install from Github
