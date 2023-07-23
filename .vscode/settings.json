@@ -1,7 +1,8 @@
 {
     "cSpell.words": [
-        "clsx"
-    ],
+		"clsx",
+		"Raycast"
+	],
 
     "typescript.tsdk": "node_modules/typescript/lib",
 	"files.eol": "\n",

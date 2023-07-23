@@ -15,7 +15,7 @@ Install [Wally](https://wally.run/install) if you haven't already
 
 To install EasyBullet using wally, add this line to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.3.2"
+EasyBullet = "zachcurtis/easybullet@0.4.0"
 ```
 Then run:
 ```bash
