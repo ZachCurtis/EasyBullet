@@ -7,6 +7,11 @@ Download the [EasyBullet.rbxmx](https://github.com/ZachCurtis/EasyBullet/blob/ma
 
 Or grab the [Marketplace model](https://create.roblox.com/marketplace/asset/13513545189/EasyBullet) and insert it via the Toolbox window
 
+Use NPM to install EasyBullet into your [Roblox-TS](https://roblox-ts.com) project:
+```bash
+npm install @rbxts/easybullet
+```
+
 To build EasyBullet into a model, use:
 
 ```bash
@@ -20,7 +25,7 @@ rojo serve
 
 To install using wally, add to your wally.toml dependencies:
 ```toml
-EasyBullet = "zachcurtis/easybullet@0.3.2"
+EasyBullet = "zachcurtis/easybullet@0.4.0"
 ```
 Then run:
 ```bash

@@ -2,7 +2,7 @@
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
--- VERSION 0.3.2
+-- VERSION 0.3.3
 
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
