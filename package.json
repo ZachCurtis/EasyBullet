@@ -1,0 +1,39 @@
+{
+  "name": "@rbxts/easybullet",
+  "version": "1.0.0",
+  "description": "A simple bullet runtime that handles network replication, network syncing, and adjusts the rendered bullets by client framerate.",
+  "homepage": "https://zachcurtis.github.io/EasyBullet/",
+  "main": "out/init.lua",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZachCurtis/EasyBullet.git"
+  },
+  "scripts": {
+    "build": "rbxtsc",
+    "watch": "rbxtsc -w",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "ZachCurtis",
+  "license": "MIT",
+  "types": "out/index.d.ts",
+  "files": [
+    "out",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@rbxts/compiler-types": "^2.1.1-types.0",
+    "@rbxts/types": "^1.0.714",
+    "@typescript-eslint/eslint-plugin": "^6.7.2",
+    "@typescript-eslint/parser": "^6.7.2",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-roblox-ts": "^0.0.35",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  }
+}
