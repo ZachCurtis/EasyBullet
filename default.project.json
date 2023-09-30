@@ -1,12 +1,6 @@
 {
   "name": "EasyBullet",
   "tree": {
-    "$className": "DataModel",
-    
-    "ReplicatedStorage": {
-      "EasyBullet": {
-        "$path": "src"
-      }
-    }
+    "$path": "src"
   }
 }
