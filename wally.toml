@@ -1,7 +1,7 @@
 [package]
 name = "zachcurtis/easybullet"
 description = "A simple bullet runtime that handles network replication, network syncing, and adjusts the rendered bullets by client framerate."
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Zach Curtis"]
 license = "MIT"
 registry = "https://github.com/UpliftGames/wally-index"
