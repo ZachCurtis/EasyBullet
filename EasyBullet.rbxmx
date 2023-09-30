@@ -1,12 +1,20 @@
-<roblox version="4">
-  <Item class="ModuleScript" referent="0">
-    <Properties>
-      <string name="Name">EasyBullet</string>
-      <string name="Source">--!strict
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+	<Meta name="ExplicitAutoJoints">true</Meta>
+	<External>null</External>
+	<External>nil</External>
+	<Item class="ModuleScript" referent="RBX9F6C037C265C424D966A28F2A14BC00C">
+		<Properties>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+			<bool name="DefinesCapabilities">false</bool>
+			<Content name="LinkedSource"><null></null></Content>
+			<string name="Name">EasyBullet</string>
+			<string name="ScriptGuid">{3934DA7F-8D1C-4A16-8773-4282A819C493}</string>
+			<ProtectedString name="Source"><![CDATA[--!strict
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
--- VERSION 0.3.2
+-- VERSION 0.3.3
 
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
@@ -21,9 +29,9 @@ export type ShouldFireCallback = (shooter: Player?, barrelPosition: Vector3, vel
 type EasyBulletProps = {
 	EasyBulletSettings: Bullet.EasyBulletSettings,
 
-	BulletHit: Signal.Signal&lt;Player?, RaycastResult, Bullet.BulletData>,
-	BulletHitHumanoid: Signal.Signal&lt;Player?, RaycastResult, Humanoid, Bullet.BulletData>,
-	BulletUpdated: Signal.Signal&lt;Vector3, Vector3, Bullet.BulletData>,
+	BulletHit: Signal.Signal<Player?, RaycastResult, Bullet.BulletData>,
+	BulletHitHumanoid: Signal.Signal<Player?, RaycastResult, Humanoid, Bullet.BulletData>,
+	BulletUpdated: Signal.Signal<Vector3, Vector3, Bullet.BulletData>,
 
 	Bullets: {[string]: Bullet.Bullet},
 	HitConnections: {[string]: Signal.SignalConnection},
@@ -376,12 +384,19 @@ function EasyBullet:_findOrCreateRemote(remoteName: string): RemoteEvent
 	end
 end
 
-return EasyBullet</string>
-    </Properties>
-    <Item class="ModuleScript" referent="1">
-      <Properties>
-        <string name="Name">Bullet</string>
-        <string name="Source">--!strict
+return EasyBullet]]></ProtectedString>
+			<int64 name="SourceAssetId">-1</int64>
+			<BinaryString name="Tags"></BinaryString>
+		</Properties>
+		<Item class="ModuleScript" referent="RBX786AC15C98374951903FAE9746CF1641">
+			<Properties>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<bool name="DefinesCapabilities">false</bool>
+				<Content name="LinkedSource"><null></null></Content>
+				<string name="Name">Bullet</string>
+				<string name="ScriptGuid">{256B6C52-5281-44A8-B063-135B311B9885}</string>
+				<ProtectedString name="Source"><![CDATA[--!strict
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
@@ -415,8 +430,8 @@ type BulletProps = {
     Velocity: Vector3,
     EasyBulletSettings: EasyBulletSettings,
     RayParams: RaycastParams,
-    BulletHit: Signal.Signal&lt;RaycastResult, boolean | Humanoid, BulletData>,
-    BelowFallenParts: Signal.Signal&lt;nil>,
+    BulletHit: Signal.Signal<RaycastResult, boolean | Humanoid, BulletData>,
+    BelowFallenParts: Signal.Signal<nil>,
     StartTime: number,
     _bulletDraw: BulletDraw.BulletDraw?,
     _lastPosition: Vector3,
@@ -488,7 +503,7 @@ function Bullet.Update(self: Bullet, castCallback: CastCallback?): (Vector3?, Ve
     local lastPosition = self._lastPosition
     local currentPosition, elapsedTime = self:_getCurrentPositionAndLifetime()
 
-    if currentPosition.Y &lt;= workspace.FallenPartsDestroyHeight then
+    if currentPosition.Y <= workspace.FallenPartsDestroyHeight then
         self.BelowFallenParts:Fire()
         return
     end
@@ -560,12 +575,19 @@ function Bullet:_handleRayResult(raycastResult: RaycastResult?)
 end
 
 
-return Bullet</string>
-      </Properties>
-      <Item class="ModuleScript" referent="2">
-        <Properties>
-          <string name="Name">BulletDraw</string>
-          <string name="Source">--!strict
+return Bullet]]></ProtectedString>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+			<Item class="ModuleScript" referent="RBX15D3BB0ABB97495CB6B9076CF00E58C5">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">BulletDraw</string>
+					<string name="ScriptGuid">{4E2ACBA8-663D-4F08-9BD3-D77E75753D1F}</string>
+					<ProtectedString name="Source"><![CDATA[--!strict
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
@@ -623,7 +645,7 @@ local function getBulletPart(): Part | CylinderHandleAdornment | nil
         local bulletPart = bulletCache[#bulletCache]
         table.remove(bulletCache, #bulletCache)
 
-        if (bulletPart:IsA("Part") and ClientFPS &lt; USE_PART_FPS) or (bulletPart:IsA("CylinderHandleAdornment") and ClientFPS >= USE_PART_FPS) then
+        if (bulletPart:IsA("Part") and ClientFPS < USE_PART_FPS) or (bulletPart:IsA("CylinderHandleAdornment") and ClientFPS >= USE_PART_FPS) then
             bulletPart:Destroy()
 
             return createBulletPart(false)
@@ -634,7 +656,7 @@ local function getBulletPart(): Part | CylinderHandleAdornment | nil
 end
 
 local function returnBulletPart(bulletPart: Part | CylinderHandleAdornment)
-    if (bulletPart:IsA("Part") and ClientFPS &lt; USE_PART_FPS) or (bulletPart:IsA("CylinderHandleAdornment") and ClientFPS >= USE_PART_FPS) then
+    if (bulletPart:IsA("Part") and ClientFPS < USE_PART_FPS) or (bulletPart:IsA("CylinderHandleAdornment") and ClientFPS >= USE_PART_FPS) then
         bulletPart:Destroy()
         createBulletPart(true)
     else
@@ -757,13 +779,20 @@ function BulletDraw:_makeAdornPart()
     return adornPart
 end
 
-return BulletDraw</string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="3">
-        <Properties>
-          <string name="Name">KinematicEquations</string>
-          <string name="Source">--!strict
+return BulletDraw]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="RBX0B07A92BB0F14A22834328AFE9DCACE4">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">KinematicEquations</string>
+					<string name="ScriptGuid">{AB62255F-DCC5-4CDF-9445-526665C3C9DD}</string>
+					<ProtectedString name="Source"><![CDATA[--!strict
 
 -- COPYRIGHT 2023 Zach Curtis
 -- Distrubted under the MIT License
@@ -804,14 +833,21 @@ function KinematicEquations:GetFinalVelocityFromDisplacement(initialVelocity: Ve
     return Vector3.new(math.sqrt(squaredVF.X), math.sqrt(squaredVF.Y), math.sqrt(squaredVF.Z))
 end
 
-return KinematicEquations</string>
-        </Properties>
-      </Item>
-    </Item>
-    <Item class="ModuleScript" referent="4">
-      <Properties>
-        <string name="Name">Signal</string>
-        <string name="Source"><![CDATA[--!strict
+return KinematicEquations]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+				</Properties>
+			</Item>
+		</Item>
+		<Item class="ModuleScript" referent="RBX126A32E3798C400CACEF6F993E867B34">
+			<Properties>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<bool name="DefinesCapabilities">false</bool>
+				<Content name="LinkedSource"><null></null></Content>
+				<string name="Name">Signal</string>
+				<string name="ScriptGuid">{9BDB47CF-34D2-4DEA-947C-BB40B26D35DE}</string>
+				<ProtectedString name="Source"><![CDATA[--!strict
 
 -- closure scoping reimplement of https://github.com/LPGhatguy/lemur/blob/master/lib/Signal.lua
 -- does not defer events
@@ -886,8 +922,10 @@ function Signal.new<T...>(): Signal<T...>
 end
 
 return Signal
-]]></string>
-      </Properties>
-    </Item>
-  </Item>
+]]></ProtectedString>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+		</Item>
+	</Item>
 </roblox>
